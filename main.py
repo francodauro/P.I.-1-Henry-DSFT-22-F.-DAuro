@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 app = FastAPI()
 
 # URL del archivo CSV en GitHub
-csv_url = 'https://raw.githubusercontent.com/francodauro/P.I.-1-Henry-DSFT-22-F.-DAuro/main/dataframe_api.csv'
+csv_url = 'dataframe_api.csv'
 
 # Leer el archivo CSV
 try:
