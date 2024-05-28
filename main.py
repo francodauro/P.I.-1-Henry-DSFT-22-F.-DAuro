@@ -24,6 +24,8 @@ try:
 except Exception as e:
     print(f"No se pudo cargar los datos para la función get_recommendations: {e}")
 
+# Definir función de bienvenida
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     message = (
@@ -33,6 +35,8 @@ def read_root():
         "<p>get_recommendations recomienda los 5 videojuegos más similares al elegido por el usuario.</p>"
     )
     return message
+
+# Definir funcion PlayTimeGenre
 
 @app.get("/PlayTimeGenre")
 def play_time_genre(genre: str):
@@ -49,6 +53,8 @@ def play_time_genre(genre: str):
     message = f"El año de lanzamiento para el género '{genre}' con más horas jugadas es {release_year}"
     return {"message": message}
 
+# Definir función get_recommendations
+
 @app.get("/get_recommendations")
 def get_recommendations(game_id: str):
     # Obtener el índice del juego dado por su id
@@ -57,7 +63,7 @@ def get_recommendations(game_id: str):
     except IndexError:
         return {"error": "El id del juego no se encuentra en el dataset."}
     
-    # Combinar todas las características en un solo texto
+    # Combinar todas las variables categóricas en un solo texto
     df_ML['combined_features'] = df_ML['tags'] + ' ' + df_ML['specs'] + ' ' + df_ML['genres']
 
     # Vectorización
