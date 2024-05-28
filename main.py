@@ -1,49 +1,41 @@
-
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
 from fastapi.responses import HTMLResponse
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-##
 app = FastAPI()
 
-# URL del archivo CSV en GitHub
+# URL del archivo CSV en GitHub (reemplaza con la URL correcta)
 csv_url = 'dataframe_api.csv'
+ml_csv_url = 'ML_df.csv'
 
-# Leer el archivo CSV
+# Leer el archivo CSV para PlayTimeGenre
 try:
     df = pd.read_csv(csv_url, dtype={'genre': str, 'playtime_forever': np.int32, 'release_year': np.int32})
 except Exception as e:
-    print(f"No se pudo cargar los datos: {e}")
+    print(f"No se pudo cargar los datos para la función PlayTimeGenre: {e}")
 
+# Leer el archivo CSV para get_recommendations
+try:
+    df_ML = pd.read_csv(ml_csv_url, dtype={'id': str, 'app_name': str, 'tags': str, 'specs': str, 'genres': str})
+   
+except Exception as e:
+    print(f"No se pudo cargar los datos para la función get_recommendations: {e}")
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    # Obtener una lista de todos los géneros disponibles
-    genres_available = df['genre'].unique()
-
-    # URL base para la función PlayTimeGenre
-    base_url = "http://127.0.0.1:8000/PlayTimeGenre?genre="  # Cambia esta URL por la URL de tu API en producción
-
-    # Mensaje de bienvenida
     message = (
         "<h1>¡Bienvenido a la API de Videojuegos!</h1>"
-        "<p>Esta API proporciona una función llamada 'PlayTimeGenre', "
-        "la cual calcula en qué año se lanzaron los videojuegos cuyo género acumuló la mayor cantidad de horas de juego.</p>"
-        "<h2>A continuación se ofrece la lista de los géneros diponibles con sus URL de consulta:</h2>"
+        "<p>Esta API proporciona dos funciones: 1- 'PlayTimeGenre' y 2- 'get_recommendations'. </p>"
+        "<p>PlayTimeGenre calcula en qué año se lanzaron los videojuegos cuyo género acumuló la mayor cantidad de horas de juego.</p>"
+        "<p>get_recommendations recomienda los 5 videojuegos más similares al elegido por el usuario.</p>"
     )
-
-    # Agregar lista de géneros disponibles al mensaje
-    for genre in genres_available:
-        # Construir la URL completa para el género actual
-        genre_url = base_url + genre
-        # Agregar el género y la URL al mensaje
-        message += f"<p>- {genre}: <a href='{genre_url}'>{genre_url}</a></p>"
-
     return message
 
 @app.get("/PlayTimeGenre")
-def play_time_genre(genre):
+def play_time_genre(genre: str):
     # Filtrar el dataframe por el género especificado
     filtered_df = df[df['genre'] == genre]
 
@@ -52,11 +44,40 @@ def play_time_genre(genre):
 
     # Calcular el año con la mayor suma de horas de juego
     result = filtered_df.groupby('release_year')['playtime_forever'].sum().idxmax()
-
-    # Obtener el año correspondiente al resultado
     release_year = int(result)
 
-    # Construir la frase estética
     message = f"El año de lanzamiento para el género '{genre}' con más horas jugadas es {release_year}"
-
     return {"message": message}
+
+@app.get("/get_recommendations")
+def get_recommendations(game_id: str):
+    # Obtener el índice del juego dado por su id
+    try:
+        idx = df_ML[df_ML['id'] == game_id].index[0]
+    except IndexError:
+        return {"error": "El id del juego no se encuentra en el dataset."}
+    
+    # Combinar todas las características en un solo texto
+    df_ML['combined_features'] = df_ML['tags'] + ' ' + df_ML['specs'] + ' ' + df_ML['genres']
+
+    # Vectorización
+    vectorizer = CountVectorizer().fit_transform(df_ML['combined_features'])
+    vectors = vectorizer.toarray()
+
+    # Calcular la Similitud del Coseno:
+    cosine_sim = cosine_similarity(vectors)
+
+    # Obtener las puntuaciones de similitud del juego dado con todos los otros juegos
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    
+    # Ordenar los juegos por puntuación de similitud
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    
+    # Obtener los índices de los 5 juegos más similares
+    sim_scores = sim_scores[1:6]
+    game_indices = [i[0] for i in sim_scores]
+    
+    # Devolver los nombres de los 5 juegos más similares
+    recommendations = df_ML[['id', 'app_name']].iloc[game_indices].to_dict(orient='records')
+    return {"recommendations": recommendations}
+
