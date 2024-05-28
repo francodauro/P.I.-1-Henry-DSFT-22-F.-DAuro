@@ -1,3 +1,5 @@
+#Importar librerías
+
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
@@ -24,7 +26,7 @@ try:
 except Exception as e:
     print(f"No se pudo cargar los datos para la función get_recommendations: {e}")
 
-# Definir función de bienvenida
+# Definir funcion bienvenida
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
@@ -53,8 +55,6 @@ def play_time_genre(genre: str):
     message = f"El año de lanzamiento para el género '{genre}' con más horas jugadas es {release_year}"
     return {"message": message}
 
-# Definir función get_recommendations
-
 @app.get("/get_recommendations")
 def get_recommendations(game_id: str):
     # Obtener el índice del juego dado por su id
@@ -63,7 +63,7 @@ def get_recommendations(game_id: str):
     except IndexError:
         return {"error": "El id del juego no se encuentra en el dataset."}
     
-    # Combinar todas las variables categóricas en un solo texto
+    # Combinar todas las características en un solo texto
     df_ML['combined_features'] = df_ML['tags'] + ' ' + df_ML['specs'] + ' ' + df_ML['genres']
 
     # Vectorización
@@ -86,4 +86,3 @@ def get_recommendations(game_id: str):
     # Devolver los nombres de los 5 juegos más similares
     recommendations = df_ML[['id', 'app_name']].iloc[game_indices].to_dict(orient='records')
     return {"recommendations": recommendations}
-
