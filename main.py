@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 app = FastAPI()
 
 # URL del archivo CSV en GitHub (reemplaza con la URL correcta)
-csv_url = 'dataframe_api.csv'
+csv_url = 'df_api_playtimegenre.csv'
 ml_csv_url = 'ML_df.csv'
 
 # Leer el archivo CSV para PlayTimeGenre
