@@ -4,6 +4,7 @@ En el presente repositorio se presentan los archivos de una API (Application Pro
 La API tiene dos funciones que se detallarán debajo:
 - PlayTimeGenre: Retorna el año de lanzamiento de los videojuegos de un determinado género en el que más cantidad de horas de juego se han acumulado. Su argumento o endpoint es el género del juego. Funciona con los datos disponibles en el archivo df_api_playtimegenre.csv.
 - get_recommendations: Devuelve una lista de 5 videojuegos recomendados para un juego elegido por el usuario. Su endpoint es la ID del juego elegido. Funciona con los datos disponibles en el archivo ML_df.csv.
+
 La API fue construida con el framework FastAPI y desplegada de manera online utilizando el servicio de la plataforma Render. Utilizando el siguiente link se puede desplejar la api:
 
 https://p-i-1-henry-dsft-22-f-dauro-12.onrender.com/
